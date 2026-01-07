@@ -6,6 +6,7 @@ import EmployeeManagement from '@/components/admin/EmployeeManagement';
 import EnrollmentForm from '@/components/admin/EnrollmentForm';
 import EmployeeSelector from '@/components/admin/EmployeeSelector';
 import WorkScheduleManager from '@/components/admin/WorkScheduleManager';
+import AbsenceAlerts from '@/components/admin/AbsenceAlerts';
 import ReportsView from '@/components/reports/ReportsView';
 import axios from 'axios';
 
@@ -19,7 +20,8 @@ interface Employee {
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'employees' | 'enrollment' | 'reports' | 'audit' | 'backup' | 'sites' | 'schedules'>('employees');
+  const [activeTab, setActiveTab] = useState<'employees' | 'enrollment' | 'reports' | 'audit' | 'backup' | 'sites' | 'schedules' | 'alerts'>('employees');
+  const [absenceAlertsCount, setAbsenceAlertsCount] = useState(0);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -32,8 +34,23 @@ export default function AdminPage() {
     if (storedToken) {
       setToken(storedToken);
       setIsAuthenticated(true);
+      fetchAbsenceAlertsCount();
+      // Refresh alerts count every 5 minutes
+      const interval = setInterval(fetchAbsenceAlertsCount, 5 * 60 * 1000);
+      return () => clearInterval(interval);
     }
   }, []);
+
+  const fetchAbsenceAlertsCount = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/absences/alerts/count`, {
+        headers: { Authorization: `Bearer ${token || localStorage.getItem('token')}` },
+      });
+      setAbsenceAlertsCount(response.data.count || 0);
+    } catch (error) {
+      console.error('Error fetching absence alerts count:', error);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
