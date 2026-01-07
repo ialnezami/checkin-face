@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import FaceRecognition from '@/components/auth/FaceRecognition';
+import FaceImageManager from './FaceImageManager';
 
 interface Employee {
   id: string;
@@ -23,7 +24,7 @@ interface EmployeeManagementProps {
   token?: string;
 }
 
-type FormStep = 'details' | 'face' | 'complete';
+type FormStep = 'details' | 'face' | 'face-management' | 'complete';
 
 export default function EmployeeManagement({ token }: EmployeeManagementProps) {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -520,6 +521,32 @@ export default function EmployeeManagement({ token }: EmployeeManagementProps) {
             </div>
           )}
 
+          {/* Face Management Step */}
+          {formStep === 'face-management' && editingEmployee && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Manage Face Images</h3>
+                <button
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingEmployee(null);
+                    resetForm();
+                  }}
+                  className="text-blue-500 hover:text-blue-700 text-sm"
+                >
+                  ← Back to List
+                </button>
+              </div>
+              <FaceImageManager
+                employeeId={editingEmployee.id}
+                employeeName={`${editingEmployee.first_name} ${editingEmployee.last_name}`}
+                onUpdate={() => {
+                  fetchEmployees();
+                }}
+              />
+            </div>
+          )}
+
           {/* Complete Step */}
           {formStep === 'complete' && (
             <div className="text-center py-8">
@@ -599,6 +626,17 @@ export default function EmployeeManagement({ token }: EmployeeManagementProps) {
                         className="px-2 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
                       >
                         Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingEmployee(employee);
+                          setFormStep('face-management');
+                          setShowForm(true);
+                        }}
+                        className="px-2 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600"
+                        title="Manage face images"
+                      >
+                        👤 Faces
                       </button>
                       <button
                         onClick={() => handleDelete(employee.id)}

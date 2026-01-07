@@ -136,7 +136,37 @@ export const enrollAuthMethod = async (req: Request, res: Response, next: NextFu
       try {
         const { encodeFace } = await import('../services/faceRecognitionService');
         const faceEncoding = await encodeFace(method_data);
-        processedData = faceEncoding; // Store the encoding array instead of raw image
+        
+        // Check if employee already has face auth method
+        const existingFaceAuth = await AuthMethodModel.findByMethodType(id, 'face');
+        
+        if (existingFaceAuth) {
+          // Get existing encodings
+          const existingData = await AuthMethodModel.getMethodData(existingFaceAuth);
+          const existingEncodings = Array.isArray(existingData[0]) 
+            ? existingData // Already an array of encodings
+            : [existingData]; // Single encoding, wrap in array
+          
+          // Add new encoding to the array
+          existingEncodings.push(faceEncoding);
+          processedData = existingEncodings;
+          
+          // Update existing auth method instead of creating new one
+          await AuthMethodModel.update(existingFaceAuth.id, { method_data: processedData });
+          logger.info('Face encoding added to existing encodings', { employeeId: id, totalEncodings: existingEncodings.length });
+          
+          res.status(200).json({
+            id: existingFaceAuth.id,
+            method_type: existingFaceAuth.method_type,
+            is_primary: existingFaceAuth.is_primary,
+            is_active: existingFaceAuth.is_active,
+            total_encodings: existingEncodings.length,
+          });
+          return;
+        } else {
+          // First face enrollment - store as array with single encoding
+          processedData = [faceEncoding];
+        }
         logger.info('Face encoded for enrollment', { employeeId: id });
       } catch (error: any) {
         logger.error('Face encoding failed', { error: error.message });
@@ -175,6 +205,113 @@ export const enrollAuthMethod = async (req: Request, res: Response, next: NextFu
       method_type: authMethod.method_type,
       is_primary: authMethod.is_primary,
       is_active: authMethod.is_active,
+      total_encodings: method_type === 'face' && Array.isArray(processedData) ? processedData.length : 1,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get all face images/encodings for an employee
+ */
+export const getFaceImages = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    // Verify employee exists
+    const employee = await EmployeeModel.findById(id);
+    if (!employee) {
+      throw new AppError('Employee not found', 404);
+    }
+
+    // Get face auth method
+    const faceAuth = await AuthMethodModel.findByMethodType(id, 'face');
+    if (!faceAuth) {
+      return res.json({ encodings: [], count: 0 });
+    }
+
+    // Get stored encodings
+    const storedData = await AuthMethodModel.getMethodData(faceAuth);
+    const encodings = Array.isArray(storedData[0]) 
+      ? storedData // Already an array of encodings
+      : storedData ? [storedData] : []; // Single encoding or empty
+
+    res.json({
+      encodings: encodings.map((_: any, index: number) => ({ index })),
+      count: encodings.length,
+      auth_method_id: faceAuth.id,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Remove a specific face encoding by index
+ */
+export const removeFaceImage = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id, index } = req.params;
+    const encodingIndex = parseInt(index);
+
+    if (isNaN(encodingIndex) || encodingIndex < 0) {
+      throw new AppError('Invalid encoding index', 400);
+    }
+
+    // Verify employee exists
+    const employee = await EmployeeModel.findById(id);
+    if (!employee) {
+      throw new AppError('Employee not found', 404);
+    }
+
+    // Get face auth method
+    const faceAuth = await AuthMethodModel.findByMethodType(id, 'face');
+    if (!faceAuth) {
+      throw new AppError('No face recognition data found for this employee', 404);
+    }
+
+    // Get stored encodings
+    const storedData = await AuthMethodModel.getMethodData(faceAuth);
+    const encodings = Array.isArray(storedData[0]) 
+      ? storedData // Already an array of encodings
+      : [storedData]; // Single encoding, wrap in array
+
+    if (encodingIndex >= encodings.length) {
+      throw new AppError('Encoding index out of range', 400);
+    }
+
+    // Remove the encoding at the specified index
+    encodings.splice(encodingIndex, 1);
+
+    if (encodings.length === 0) {
+      // No encodings left, deactivate the auth method
+      await AuthMethodModel.deactivate(faceAuth.id);
+      logger.info('Face auth method deactivated - no encodings left', { employeeId: id });
+      await logAudit(req, 'auth_method.deactivated', 'auth_method', faceAuth.id, { 
+        method_type: 'face', 
+        employee_id: id,
+        reason: 'All face encodings removed'
+      });
+    } else {
+      // Update with remaining encodings
+      await AuthMethodModel.update(faceAuth.id, { method_data: encodings });
+      logger.info('Face encoding removed', { 
+        employeeId: id, 
+        removedIndex: encodingIndex,
+        remainingCount: encodings.length 
+      });
+      await logAudit(req, 'face_image.removed', 'auth_method', faceAuth.id, { 
+        method_type: 'face', 
+        employee_id: id,
+        removed_index: encodingIndex,
+        remaining_count: encodings.length
+      });
+    }
+
+    res.json({
+      message: 'Face image removed successfully',
+      remaining_count: encodings.length,
     });
   } catch (error) {
     next(error);

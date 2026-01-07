@@ -153,22 +153,35 @@ export const recognizeFace = async (imageData: string): Promise<string | null> =
       if (!faceAuth) continue;
 
       try {
-        // Get stored face encoding
-        const storedEncoding = await AuthMethodModel.getMethodData(faceAuth);
+        // Get stored face encodings (can be single encoding or array of encodings)
+        const storedData = await AuthMethodModel.getMethodData(faceAuth);
         
-        if (!storedEncoding || !Array.isArray(storedEncoding)) {
+        if (!storedData) {
           continue;
         }
 
-        // Compare faces
-        const similarity = compareFaces(inputEncoding, storedEncoding);
+        // Handle both single encoding (legacy) and multiple encodings (new format)
+        const encodings: number[][] = Array.isArray(storedData[0]) 
+          ? storedData // Already an array of encodings
+          : [storedData]; // Single encoding, wrap in array
 
-        // Check if similarity meets threshold
-        if (similarity >= config.faceRecognition.threshold) {
-          if (!bestMatch || similarity > bestMatch.similarity) {
+        // Compare against all stored encodings and use the best match
+        let bestSimilarity = 0;
+        for (const storedEncoding of encodings) {
+          if (!Array.isArray(storedEncoding)) continue;
+          
+          const similarity = compareFaces(inputEncoding, storedEncoding);
+          if (similarity > bestSimilarity) {
+            bestSimilarity = similarity;
+          }
+        }
+
+        // Check if best similarity meets threshold
+        if (bestSimilarity >= config.faceRecognition.threshold) {
+          if (!bestMatch || bestSimilarity > bestMatch.similarity) {
             bestMatch = {
               employeeId: employee.id,
-              similarity,
+              similarity: bestSimilarity,
             };
           }
         }

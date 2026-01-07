@@ -57,5 +57,19 @@ router.post(
   employeeController.enrollAuthMethod
 );
 
+// Get all face images for an employee
+router.get(
+  '/:id/face-images',
+  authorize('admin', 'manager'),
+  employeeController.getFaceImages
+);
+
+// Remove a specific face image by index
+router.delete(
+  '/:id/face-images/:index',
+  authorize('admin', 'manager'),
+  employeeController.removeFaceImage
+);
+
 export default router;
 
