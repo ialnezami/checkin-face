@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../middleware/errorHandler';
 import * as reportService from '../services/reportService';
-import { format } from 'date-fns';
 
 export const getDailyReport = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -70,19 +69,27 @@ export const exportCSV = async (req: Request, res: Response, next: NextFunction)
     const employees = await EmployeeModel.findAll(1000, 0);
 
     // Create CSV content
-    const headers = ['Date', 'Employee ID', 'Employee Name', 'Check-In Time', 'Check-Out Time', 'Method', 'Status'];
-    const rows = records.map(record => {
-      const employee = employees.find(e => e.id === record.employee_id);
-      return [
-        format(new Date(record.check_in_time), 'yyyy-MM-dd'),
-        employee?.employee_id || record.employee_id,
-        employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown',
-        format(new Date(record.check_in_time), 'yyyy-MM-dd HH:mm:ss'),
-        record.check_out_time ? format(new Date(record.check_out_time), 'yyyy-MM-dd HH:mm:ss') : '',
-        record.auth_method_used,
-        record.status,
-      ];
-    });
+      const formatDate = (date: Date) => {
+        return date.toISOString().split('T')[0];
+      };
+
+      const formatDateTime = (date: Date) => {
+        return date.toISOString().replace('T', ' ').split('.')[0];
+      };
+
+      const headers = ['Date', 'Employee ID', 'Employee Name', 'Check-In Time', 'Check-Out Time', 'Method', 'Status'];
+      const rows = records.map(record => {
+        const employee = employees.find(e => e.id === record.employee_id);
+        return [
+          formatDate(new Date(record.check_in_time)),
+          employee?.employee_id || record.employee_id,
+          employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown',
+          formatDateTime(new Date(record.check_in_time)),
+          record.check_out_time ? formatDateTime(new Date(record.check_out_time)) : '',
+          record.auth_method_used,
+          record.status,
+        ];
+      });
 
     const csvContent = [
       headers.join(','),
