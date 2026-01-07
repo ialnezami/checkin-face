@@ -34,6 +34,7 @@ router.get('/audit-logs', adminController.getAuditLogs);
 
 // Backup and restore
 router.post('/backup', adminController.createBackup);
+router.get('/backups', adminController.listBackups);
 router.post('/restore', adminController.restoreBackup);
 
 export default router;
