@@ -6,14 +6,14 @@ import * as siteController from '../controllers/siteController';
 
 const router = express.Router();
 
-// All routes require authentication
+// Get enabled methods for a site (public endpoint for check-in - no auth required)
+router.get('/:id/enabled-methods', siteController.getEnabledMethods);
+
+// All other routes require authentication
 router.use(authenticate);
 
 // Get all sites
 router.get('/', siteController.getSites);
-
-// Get enabled methods for a site (public endpoint for check-in)
-router.get('/:id/enabled-methods', siteController.getEnabledMethods);
 
 // Get site details
 router.get('/:id', siteController.getSite);
