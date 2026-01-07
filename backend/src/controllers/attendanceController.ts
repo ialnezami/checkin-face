@@ -78,11 +78,45 @@ export const checkInWithRFID = async (req: Request, res: Response, next: NextFun
       throw new AppError('Tag ID is required', 400);
     }
 
-    // Find employee by RFID tag
-    // TODO: Implement RFID tag matching logic
-    // This would require querying auth_methods where method_type = 'rfid' 
-    // and method_data contains the matching tag_id
-    throw new AppError('RFID recognition not fully implemented', 501);
+    // Import RFID service
+    const { recognizeRFID } = await import('../services/rfidService');
+    
+    // Recognize RFID tag
+    const employeeId = await recognizeRFID(tag_id);
+    if (!employeeId) {
+      throw new AppError('RFID tag not recognized', 404);
+    }
+
+    // Check if employee exists and is active
+    const employee = await EmployeeModel.findById(employeeId);
+    if (!employee || employee.status !== 'active') {
+      throw new AppError('Employee not found or inactive', 404);
+    }
+
+    // Check for active check-in
+    const activeCheckIn = await AttendanceModel.findActiveCheckIn(employeeId);
+    if (activeCheckIn) {
+      throw new AppError('Employee already checked in', 400);
+    }
+
+    // Create attendance record
+    const attendanceData: CreateAttendanceInput = {
+      employee_id: employeeId,
+      auth_method_used: 'rfid',
+    };
+
+    const attendance = await AttendanceModel.create(attendanceData);
+    logger.info('Check-in with RFID', { employeeId, tagId: tag_id, attendanceId: attendance.id });
+
+    res.status(201).json({
+      message: 'Checked in successfully',
+      attendance,
+      employee: {
+        id: employee.id,
+        employee_id: employee.employee_id,
+        name: `${employee.first_name} ${employee.last_name}`,
+      },
+    });
   } catch (error) {
     next(error);
   }
