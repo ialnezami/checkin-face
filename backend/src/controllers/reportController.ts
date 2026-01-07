@@ -119,6 +119,11 @@ export const exportJSON = async (req: Request, res: Response, next: NextFunction
     const startDate = new Date(start_date as string);
     const endDate = new Date(end_date as string);
 
+    // Helper function
+    const formatDate = (date: Date) => {
+      return date.toISOString().split('T')[0];
+    };
+
     const { AttendanceModel } = await import('../models/Attendance');
     const { EmployeeModel } = await import('../models/Employee');
 
@@ -136,10 +141,6 @@ export const exportJSON = async (req: Request, res: Response, next: NextFunction
         } : null,
       };
     });
-
-    const formatDate = (date: Date) => {
-      return date.toISOString().split('T')[0];
-    };
 
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', `attachment; filename=attendance-${formatDate(startDate)}-to-${formatDate(endDate)}.json`);
