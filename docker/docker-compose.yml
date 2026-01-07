@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB: ${DB_NAME:-checkin_db}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./../database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
@@ -68,10 +68,11 @@ services:
     container_name: checkin-frontend
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
+    command: npm run dev
     ports:
-      - "3000:3000"
+      - "3002:3000"
     volumes:
-      - ../frontend:/app
+      - ./../frontend:/app
       - /app/node_modules
       - /app/.next
     depends_on:

@@ -79,9 +79,9 @@ export const checkInWithRFID = async (req: Request, res: Response, next: NextFun
     }
 
     // Find employee by RFID tag
-    const authMethods = await AuthMethodModel.findByMethodType('rfid');
-    // This is simplified - in reality, you'd need to match tag_id with stored RFID data
-    // For now, return error
+    // TODO: Implement RFID tag matching logic
+    // This would require querying auth_methods where method_type = 'rfid' 
+    // and method_data contains the matching tag_id
     throw new AppError('RFID recognition not fully implemented', 501);
   } catch (error) {
     next(error);
