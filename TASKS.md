@@ -160,14 +160,14 @@ This document contains all implementation tasks for the Employee Check-In System
   - Add enrollment progress tracking
   - Create enrollment verification
 
-- [ ] **TASK-022**: Add employee profile management
+- [~] **TASK-022**: Add employee profile management
   - Create employee profile page
   - Add profile photo upload
   - Implement profile editing
   - Add authentication methods management
   - Create profile view for employees
 
-- [ ] **TASK-023**: Create employee search and filtering
+- [x] **TASK-023**: Create employee search and filtering
   - Implement advanced search UI
   - Add filter options (department, status, etc.)
   - Create search result pagination
@@ -180,7 +180,7 @@ This document contains all implementation tasks for the Employee Check-In System
 
 **Goal**: Implement core check-in/check-out functionality with all authentication methods.
 
-- [ ] **TASK-024**: Implement check-in/check-out API endpoints
+- [x] **TASK-024**: Implement check-in/check-out API endpoints
   - Create check-in endpoint with method routing
   - Implement check-out endpoint
   - Add validation and error handling
