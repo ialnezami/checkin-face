@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes';
 import employeeRoutes from './routes/employeeRoutes';
 import attendanceRoutes from './routes/attendanceRoutes';
 import adminRoutes from './routes/adminRoutes';
+import reportRoutes from './routes/reportRoutes';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -62,6 +63,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/reports', reportRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

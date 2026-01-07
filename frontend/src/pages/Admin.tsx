@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import EmployeeManagement from '@/components/admin/EmployeeManagement';
 import EnrollmentForm from '@/components/admin/EnrollmentForm';
+import ReportsView from '@/components/reports/ReportsView';
 import axios from 'axios';
 
 interface Employee {
@@ -16,7 +17,7 @@ interface Employee {
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'employees' | 'enrollment'>('employees');
+  const [activeTab, setActiveTab] = useState<'employees' | 'enrollment' | 'reports'>('employees');
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -139,12 +140,26 @@ export default function AdminPage() {
             >
               Enrollment
             </button>
+            <button
+              onClick={() => setActiveTab('reports')}
+              className={`px-4 py-2 font-medium ${
+                activeTab === 'reports'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Reports
+            </button>
           </div>
         </div>
 
         {/* Content */}
         {activeTab === 'employees' && (
           <EmployeeManagement token={token || undefined} />
+        )}
+
+        {activeTab === 'reports' && (
+          <ReportsView />
         )}
 
         {activeTab === 'enrollment' && (
@@ -181,4 +196,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
