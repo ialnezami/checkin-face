@@ -32,10 +32,16 @@ A comprehensive multi-modal employee check-in system supporting face recognition
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ or Python 3.10+
-- PostgreSQL 14+
-- Redis (optional, for caching)
-- Docker (optional, for containerized deployment)
+- Docker and Docker Compose (recommended)
+- Node.js 18+ (for local development)
+- PostgreSQL 14+ (if not using Docker)
+
+### Default Admin Credentials
+- **Username**: `admin`
+- **Password**: `admin123`
+- **Access**: http://localhost:3002/admin
+
+⚠️ **Change the default password after first login!**
 
 ### Installation
 
@@ -68,13 +74,22 @@ cp .env.example .env
 npm run migrate  # or python manage.py migrate
 ```
 
-5. Start development servers
+5. Create admin user
+```bash
+# Using Docker (recommended)
+./scripts/create-admin-docker.sh
+
+# Or with custom credentials
+./scripts/create-admin-docker.sh username email@example.com password
+```
+
+6. Start development servers (if not using Docker)
 ```bash
 # Frontend (from frontend directory)
 npm run dev
 
 # Backend (from backend directory)
-npm run dev  # or python app.py
+npm run dev
 ```
 
 ## Project Structure
