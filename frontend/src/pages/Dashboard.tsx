@@ -117,6 +117,11 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Analytics Section */}
+        <div className="mb-6">
+          <AnalyticsDashboard />
+        </div>
+
         {/* Recent Records */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="p-4 border-b">
