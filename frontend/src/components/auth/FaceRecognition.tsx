@@ -6,6 +6,7 @@ import axios from 'axios';
 interface FaceRecognitionProps {
   onSuccess?: (employeeId: string, employeeName: string) => void;
   onError?: (error: string) => void;
+  onCapture?: (imageData: string) => void; // Callback when face is captured (for enrollment during creation)
   mode?: 'checkin' | 'enrollment';
   employeeId?: string;
 }
@@ -13,6 +14,7 @@ interface FaceRecognitionProps {
 export default function FaceRecognition({
   onSuccess,
   onError,
+  onCapture,
   mode = 'checkin',
   employeeId,
 }: FaceRecognitionProps) {
@@ -129,6 +131,14 @@ export default function FaceRecognition({
   };
 
   const enrollFace = async (imageData: string) => {
+    // If onCapture callback is provided, call it first (for employee creation flow)
+    if (onCapture) {
+      onCapture(imageData);
+      setMessage('Face captured! Processing...');
+      return;
+    }
+
+    // Otherwise, enroll directly (for existing employee enrollment)
     if (!employeeId) {
       throw new Error('Employee ID is required for enrollment');
     }
