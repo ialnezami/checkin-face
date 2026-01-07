@@ -31,10 +31,26 @@ A comprehensive multi-modal employee check-in system supporting face recognition
 
 ## Getting Started
 
-### Prerequisites
-- Docker and Docker Compose (recommended)
-- Node.js 18+ (for local development)
-- PostgreSQL 14+ (if not using Docker)
+### Quick Start (Recommended - Using Docker)
+
+1. **Start Docker containers**:
+   ```bash
+   cd docker
+   docker-compose up -d
+   ```
+
+2. **Create admin user**:
+   ```bash
+   cd ..
+   ./scripts/create-admin-docker.sh
+   ```
+
+3. **Access the application**:
+   - Frontend: http://localhost:3002
+   - Admin Panel: http://localhost:3002/admin
+   - Default credentials: `admin` / `admin123`
+
+See [SETUP_GUIDE.md](./SETUP_GUIDE.md) for detailed instructions.
 
 ### Default Admin Credentials
 - **Username**: `admin`
@@ -43,15 +59,9 @@ A comprehensive multi-modal employee check-in system supporting face recognition
 
 ⚠️ **Change the default password after first login!**
 
-### Installation
+### Manual Installation (Without Docker)
 
-1. Clone the repository
-```bash
-git clone <repository-url>
-cd checkin-face
-```
-
-2. Install dependencies
+1. Install dependencies
 ```bash
 # Frontend
 cd frontend
@@ -59,36 +69,36 @@ npm install
 
 # Backend
 cd ../backend
-npm install  # or pip install -r requirements.txt
+npm install
 ```
 
-3. Set up environment variables
+2. Set up PostgreSQL database
+```bash
+# Create database
+createdb checkin_db
+
+# Run schema
+psql -d checkin_db -f database/schema.sql
+```
+
+3. Configure environment
 ```bash
 cp .env.example .env
-# Edit .env with your configuration
+# Edit .env with your database credentials
 ```
 
-4. Set up database
+4. Create admin user
 ```bash
-# Run migrations
-npm run migrate  # or python manage.py migrate
+cd backend
+npm run seed  # Creates default admin user
 ```
 
-5. Create admin user
+5. Start servers
 ```bash
-# Using Docker (recommended)
-./scripts/create-admin-docker.sh
-
-# Or with custom credentials
-./scripts/create-admin-docker.sh username email@example.com password
-```
-
-6. Start development servers (if not using Docker)
-```bash
-# Frontend (from frontend directory)
+# Backend (from backend directory)
 npm run dev
 
-# Backend (from backend directory)
+# Frontend (from frontend directory, new terminal)
 npm run dev
 ```
 
