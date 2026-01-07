@@ -249,7 +249,16 @@ export const getAttendanceRecords = async (req: Request, res: Response, next: Ne
 export const getDashboardData = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const stats = await AttendanceModel.getTodayStats();
-    res.json(stats);
+    
+    // Get late arrivals for today
+    const { detectLateArrivals } = await import('../services/lateArrivalService');
+    const lateArrivals = await detectLateArrivals(new Date());
+    
+    res.json({
+      ...stats,
+      lateArrivals: lateArrivals.length,
+      lateArrivalRecords: lateArrivals.slice(0, 10), // Top 10 late arrivals
+    });
   } catch (error) {
     next(error);
   }
