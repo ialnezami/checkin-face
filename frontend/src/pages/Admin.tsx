@@ -17,7 +17,7 @@ interface Employee {
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'employees' | 'enrollment' | 'reports' | 'audit' | 'backup'>('employees');
+  const [activeTab, setActiveTab] = useState<'employees' | 'enrollment' | 'reports' | 'audit' | 'backup' | 'sites'>('employees');
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -170,6 +170,16 @@ export default function AdminPage() {
             >
               Backup/Restore
             </button>
+            <button
+              onClick={() => setActiveTab('sites')}
+              className={`px-4 py-2 font-medium ${
+                activeTab === 'sites'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Sites
+            </button>
           </div>
         </div>
 
@@ -196,6 +206,15 @@ export default function AdminPage() {
             {(() => {
               const BackupRestore = require('@/components/admin/BackupRestore').default;
               return <BackupRestore />;
+            })()}
+          </div>
+        )}
+
+        {activeTab === 'sites' && (
+          <div>
+            {(() => {
+              const SiteManagement = require('@/components/admin/SiteManagement').default;
+              return <SiteManagement />;
             })()}
           </div>
         )}
