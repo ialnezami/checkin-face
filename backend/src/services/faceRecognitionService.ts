@@ -1,14 +1,37 @@
-import * as faceapi from 'face-api.js';
 import { EmployeeModel } from '../models/Employee';
 import { AuthMethodModel } from '../models/AuthMethod';
 import { logger } from '../utils/logger';
 import { config } from '../config/env';
 import fs from 'fs';
 import path from 'path';
-import { createCanvas, loadImage, Image, Canvas, ImageData } from 'canvas';
 
-// Extend face-api.js to work with Node.js canvas
-faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
+// Lazy load face-api.js and canvas to handle missing dependencies gracefully
+let faceapi: any = null;
+let Canvas: any = null;
+let Image: any = null;
+let ImageData: any = null;
+let createCanvas: any = null;
+let loadImage: any = null;
+
+const loadDependencies = async () => {
+  if (faceapi) return; // Already loaded
+  
+  try {
+    faceapi = await import('face-api.js');
+    const canvasModule = await import('canvas');
+    Canvas = canvasModule.Canvas;
+    Image = canvasModule.Image;
+    ImageData = canvasModule.ImageData;
+    createCanvas = canvasModule.createCanvas;
+    loadImage = canvasModule.loadImage;
+    
+    // Extend face-api.js to work with Node.js canvas
+    faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
+  } catch (error) {
+    logger.error('Failed to load face recognition dependencies', { error });
+    throw new Error('Face recognition dependencies not available. Please install canvas and face-api.js packages.');
+  }
+};
 
 let modelsLoaded = false;
 
@@ -19,6 +42,9 @@ const loadModels = async (): Promise<void> => {
   if (modelsLoaded) return;
 
   try {
+    // Load dependencies first
+    await loadDependencies();
+    
     const modelPath = path.join(process.cwd(), config.faceRecognition.modelPath);
     
     // Create models directory if it doesn't exist

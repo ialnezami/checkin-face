@@ -4,7 +4,6 @@ import { EmployeeModel } from '../models/Employee';
 import { AuthMethodModel } from '../models/AuthMethod';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
-import * as faceRecognitionService from '../services/faceRecognitionService';
 
 export const checkInWithFace = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -14,6 +13,9 @@ export const checkInWithFace = async (req: Request, res: Response, next: NextFun
       throw new AppError('Image is required', 400);
     }
 
+    // Dynamically import face recognition service
+    const faceRecognitionService = await import('../services/faceRecognitionService');
+    
     // Recognize face
     const employeeId = await faceRecognitionService.recognizeFace(image);
     if (!employeeId) {
