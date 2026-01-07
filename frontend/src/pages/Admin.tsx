@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import EmployeeManagement from '@/components/admin/EmployeeManagement';
 import EnrollmentForm from '@/components/admin/EnrollmentForm';
+import EmployeeSelector from '@/components/admin/EmployeeSelector';
 import ReportsView from '@/components/reports/ReportsView';
 import axios from 'axios';
 
@@ -225,7 +226,7 @@ export default function AdminPage() {
               <div>
                 <button
                   onClick={() => setSelectedEmployee(null)}
-                  className="mb-4 text-blue-500 hover:text-blue-700"
+                  className="mb-4 px-4 py-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                 >
                   ← Back to Employee Selection
                 </button>
@@ -236,16 +237,10 @@ export default function AdminPage() {
                 />
               </div>
             ) : (
-              <div className="bg-white p-6 rounded-lg shadow-lg">
-                <h2 className="text-xl font-semibold mb-4">Select Employee for Enrollment</h2>
-                <p className="text-gray-600 mb-4">
-                  Use the Employee Management tab to find an employee, then come back here to enroll
-                  authentication methods.
-                </p>
-                <p className="text-sm text-gray-500">
-                  Or implement an employee selector component here.
-                </p>
-              </div>
+              <EmployeeSelector
+                onSelect={(employee) => setSelectedEmployee(employee)}
+                token={token || undefined}
+              />
             )}
           </div>
         )}
