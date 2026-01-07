@@ -16,6 +16,7 @@ import employeeAuthRoutes from './routes/employeeAuthRoutes';
 import leaveRequestRoutes from './routes/leaveRequestRoutes';
 import managerRoutes from './routes/managerRoutes';
 import scheduleRoutes from './routes/scheduleRoutes';
+import absenceRoutes from './routes/absenceRoutes';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -80,6 +81,7 @@ app.use('/api/employee/auth', employeeAuthRoutes);
 app.use('/api/leave-requests', leaveRequestRoutes);
 app.use('/api/managers', managerRoutes);
 app.use('/api/schedules', scheduleRoutes);
+app.use('/api/absences', absenceRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

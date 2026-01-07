@@ -50,7 +50,7 @@ export const createEmployeeSchedule = async (req: Request, res: Response, next: 
     }
 
     const scheduleData: CreateWorkScheduleInput = {
-      site_id: site_id || employee.site_id || '',
+      site_id: site_id || (employee as any).site_id || '',
       employee_id: employeeId,
       shift_type,
       day_of_week: day_of_week !== undefined ? day_of_week : null,

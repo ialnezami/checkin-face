@@ -35,15 +35,19 @@ const getExpectedStartTime = async (
     }
 
     // Fall back to site default schedule
-    const siteSchedule = await SiteDefaultScheduleModel.getSiteDefaultSchedule(siteId, date);
+    const siteSchedule = await SiteDefaultScheduleModel.findBySiteId(siteId);
+    const matchingSchedule = siteSchedule.find(s => {
+      if (s.day_of_week === null) return true;
+      return s.day_of_week === date.getDay();
+    });
     
-    if (siteSchedule) {
-      const [hours, minutes] = siteSchedule.start_time.split(':').map(Number);
+    if (matchingSchedule) {
+      const [hours, minutes] = matchingSchedule.start_time.split(':').map(Number);
       const expectedTime = new Date(date);
       expectedTime.setHours(hours, minutes, 0, 0);
       return {
         expectedTime,
-        gracePeriod: siteSchedule.grace_period_minutes,
+        gracePeriod: matchingSchedule.grace_period_minutes,
       };
     }
 
