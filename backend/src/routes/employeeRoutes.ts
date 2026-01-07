@@ -1,13 +1,15 @@
 import express from 'express';
 import { body, query as queryValidator } from 'express-validator';
 import { validate } from '../middleware/validation';
-import { authenticate, authorize } from '../middleware/auth';
+import { authenticate, authorize, requireManagerSite } from '../middleware/auth';
 import * as employeeController from '../controllers/employeeController';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authenticate);
+// For manager routes, ensure they can only access their site
+router.use(requireManagerSite);
 
 // Get all employees
 router.get(

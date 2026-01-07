@@ -68,3 +68,41 @@ export const authorize = (...roles: string[]) => {
   };
 };
 
+/**
+ * Middleware to ensure manager can only access their own site's resources
+ */
+export const requireManagerSite = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return res.status(401).json({
+      error: 'Authentication required',
+    });
+  }
+
+  // Admin can access all sites
+  if (req.user.role === 'admin') {
+    return next();
+  }
+
+  // Manager must have a site_id
+  if (req.user.role === 'manager') {
+    const { UserModel } = await import('../models/User');
+    const user = await UserModel.findById(req.user.userId);
+    
+    if (!user || !user.site_id) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'Manager must be assigned to a site',
+      });
+    }
+
+    // Store manager's site_id in request for use in controllers
+    (req as any).managerSiteId = user.site_id;
+    return next();
+  }
+
+  return res.status(403).json({
+    error: 'Forbidden',
+    message: 'This endpoint is only available to admins and managers',
+  });
+};
+

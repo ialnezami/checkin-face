@@ -10,12 +10,15 @@ export const getAllEmployees = async (req: Request, res: Response, next: NextFun
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
     const search = req.query.search as string;
+    
+    // If manager, filter by their site_id
+    const managerSiteId = (req as any).managerSiteId;
 
     let employees;
     if (search) {
-      employees = await EmployeeModel.search(search, limit);
+      employees = await EmployeeModel.search(search, limit, managerSiteId);
     } else {
-      employees = await EmployeeModel.findAll(limit, offset);
+      employees = await EmployeeModel.findAll(limit, offset, managerSiteId);
     }
 
     res.json({
