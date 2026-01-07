@@ -2,6 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface AnalyticsData {
   totalLateArrivals: number;
@@ -21,13 +36,36 @@ interface LateArrivalRecord {
   department?: string;
 }
 
+interface AttendanceReport {
+  date: string;
+  totalEmployees: number;
+  checkedIn: number;
+  checkedOut: number;
+  currentlyCheckedIn: number;
+  lateArrivals: number;
+  absences: number;
+}
+
+interface DepartmentReport {
+  department: string;
+  totalEmployees: number;
+  checkedIn: number;
+  attendanceRate: number;
+}
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
 export default function AnalyticsDashboard() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [lateArrivals, setLateArrivals] = useState<LateArrivalRecord[]>([]);
   const [stats, setStats] = useState<AnalyticsData | null>(null);
+  const [weeklyData, setWeeklyData] = useState<AttendanceReport[]>([]);
+  const [departmentData, setDepartmentData] = useState<DepartmentReport[]>([]);
+  const [dailyData, setDailyData] = useState<AttendanceReport | null>(null);
   const [loading, setLoading] = useState(false);
+  const [chartType, setChartType] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   const token = localStorage.getItem('token');
@@ -62,17 +100,185 @@ export default function AnalyticsDashboard() {
     }
   };
 
+  const fetchWeeklyReport = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API_URL}/api/reports/weekly`, {
+        params: { start_date: startDate },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setWeeklyData(response.data.reports || []);
+    } catch (error) {
+      console.error('Error fetching weekly report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMonthlyReport = async () => {
+    setLoading(true);
+    try {
+      const today = new Date();
+      const response = await axios.get(`${API_URL}/api/reports/monthly`, {
+        params: {
+          year: today.getFullYear(),
+          month: today.getMonth() + 1,
+        },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setWeeklyData(response.data.reports || []);
+    } catch (error) {
+      console.error('Error fetching monthly report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDailyReport = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API_URL}/api/reports/daily`, {
+        params: { date },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDailyData(response.data);
+    } catch (error) {
+      console.error('Error fetching daily report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDepartmentReport = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API_URL}/api/reports/department`, {
+        params: { date },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDepartmentData(response.data.reports || []);
+    } catch (error) {
+      console.error('Error fetching department report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchLateArrivals();
+    fetchDailyReport();
+    fetchDepartmentReport();
   }, [date]);
 
-  return (
-    <div className="p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-6">Attendance Analytics</h2>
+  useEffect(() => {
+    if (chartType === 'weekly') {
+      fetchWeeklyReport();
+    } else if (chartType === 'monthly') {
+      fetchMonthlyReport();
+    }
+  }, [chartType, startDate]);
 
-      {/* Late Arrivals Section */}
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4">Late Arrivals</h3>
+  // Prepare chart data
+  const attendanceTrendData = weeklyData.map((report) => ({
+    date: new Date(report.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    checkedIn: report.checkedIn,
+    checkedOut: report.checkedOut,
+    lateArrivals: report.lateArrivals,
+    absences: report.absences,
+  }));
+
+  const departmentChartData = departmentData.map((dept) => ({
+    name: dept.department,
+    attendanceRate: Math.round(dept.attendanceRate),
+    checkedIn: dept.checkedIn,
+    totalEmployees: dept.totalEmployees,
+  }));
+
+  const attendanceDistributionData = dailyData
+    ? [
+        { name: 'Checked In', value: dailyData.checkedIn },
+        { name: 'Absent', value: dailyData.absences },
+        { name: 'Late Arrivals', value: dailyData.lateArrivals },
+      ]
+    : [];
+
+  return (
+    <div className="p-6 space-y-6">
+      <h2 className="text-3xl font-bold mb-6">Attendance Analytics Dashboard</h2>
+
+      {/* Chart Type Selector */}
+      <div className="bg-white p-4 rounded-lg shadow-lg">
+        <div className="flex items-center gap-4 mb-4">
+          <label className="text-sm font-medium">Chart Period:</label>
+          <select
+            value={chartType}
+            onChange={(e) => setChartType(e.target.value as 'daily' | 'weekly' | 'monthly')}
+            className="px-4 py-2 border border-gray-300 rounded-lg"
+          >
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+          {chartType !== 'daily' && (
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Attendance Trends Chart */}
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <h3 className="text-xl font-semibold mb-4">Attendance Trends</h3>
+        {attendanceTrendData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={attendanceTrendData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="checkedIn" stroke="#0088FE" name="Checked In" />
+              <Line type="monotone" dataKey="checkedOut" stroke="#00C49F" name="Checked Out" />
+              <Line type="monotone" dataKey="lateArrivals" stroke="#FF8042" name="Late Arrivals" />
+              <Line type="monotone" dataKey="absences" stroke="#FF0000" name="Absences" />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            {loading ? 'Loading...' : 'No data available. Select a date range to view trends.'}
+          </div>
+        )}
+      </div>
+
+      {/* Department-wise Analytics */}
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <h3 className="text-xl font-semibold mb-4">Department-wise Attendance</h3>
+        {departmentChartData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={departmentChartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="attendanceRate" fill="#0088FE" name="Attendance Rate (%)" />
+              <Bar dataKey="checkedIn" fill="#00C49F" name="Checked In" />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            {loading ? 'Loading...' : 'No department data available.'}
+          </div>
+        )}
+      </div>
+
+      {/* Attendance Distribution Pie Chart */}
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <h3 className="text-xl font-semibold mb-4">Today's Attendance Distribution</h3>
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2">Date</label>
           <input
@@ -82,7 +288,37 @@ export default function AnalyticsDashboard() {
             className="px-4 py-2 border border-gray-300 rounded-lg"
           />
         </div>
+        {attendanceDistributionData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={attendanceDistributionData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {attendanceDistributionData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            {loading ? 'Loading...' : 'No data available for selected date.'}
+          </div>
+        )}
+      </div>
 
+      {/* Late Arrivals Section */}
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <h3 className="text-xl font-semibold mb-4">Late Arrivals</h3>
         {loading ? (
           <div className="text-center py-4">Loading...</div>
         ) : lateArrivals.length === 0 ? (
@@ -120,7 +356,7 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* Statistics Section */}
-      <div>
+      <div className="bg-white p-6 rounded-lg shadow-lg">
         <h3 className="text-xl font-semibold mb-4">Late Arrival Statistics</h3>
         <div className="mb-4 grid grid-cols-2 gap-4">
           <div>
@@ -158,12 +394,16 @@ export default function AnalyticsDashboard() {
             </div>
             <div className="p-4 bg-orange-50 rounded-lg">
               <div className="text-sm text-gray-600">Average Minutes Late</div>
-              <div className="text-3xl font-bold text-orange-600">{stats.averageMinutesLate}</div>
+              <div className="text-3xl font-bold text-orange-600">
+                {Math.round(stats.averageMinutesLate)}
+              </div>
             </div>
             {stats.mostLateEmployee && (
               <div className="p-4 bg-yellow-50 rounded-lg">
                 <div className="text-sm text-gray-600">Most Late Employee</div>
-                <div className="text-lg font-bold text-yellow-600">{stats.mostLateEmployee.name}</div>
+                <div className="text-lg font-bold text-yellow-600">
+                  {stats.mostLateEmployee.name}
+                </div>
                 <div className="text-sm text-gray-500">{stats.mostLateEmployee.count} times</div>
               </div>
             )}

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
+import AbsenceAlerts from '@/components/admin/AbsenceAlerts';
 
 interface DashboardStats {
   totalCheckedIn: number;
@@ -115,6 +116,11 @@ export default function DashboardPage() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Absence Alerts Section */}
+        <div className="mb-6">
+          <AbsenceAlerts autoRefresh={true} />
         </div>
 
         {/* Analytics Section */}
