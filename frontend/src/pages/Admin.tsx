@@ -209,6 +209,24 @@ export default function AdminPage() {
             >
               Work Schedules
             </button>
+            <button
+              onClick={() => {
+                setActiveTab('alerts');
+                fetchAbsenceAlertsCount();
+              }}
+              className={`px-4 py-2 font-medium relative ${
+                activeTab === 'alerts'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Absence Alerts
+              {absenceAlertsCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {absenceAlertsCount > 9 ? '9+' : absenceAlertsCount}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
@@ -250,6 +268,10 @@ export default function AdminPage() {
 
         {activeTab === 'schedules' && (
           <WorkScheduleManager token={token || undefined} />
+        )}
+
+        {activeTab === 'alerts' && (
+          <AbsenceAlerts token={token || undefined} />
         )}
 
         {activeTab === 'enrollment' && (
