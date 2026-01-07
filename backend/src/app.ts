@@ -12,6 +12,8 @@ import adminRoutes from './routes/adminRoutes';
 import reportRoutes from './routes/reportRoutes';
 import lateArrivalRoutes from './routes/lateArrivalRoutes';
 import siteRoutes from './routes/siteRoutes';
+import employeeAuthRoutes from './routes/employeeAuthRoutes';
+import leaveRequestRoutes from './routes/leaveRequestRoutes';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -72,6 +74,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/late-arrivals', lateArrivalRoutes);
 app.use('/api/sites', siteRoutes);
+app.use('/api/employee/auth', employeeAuthRoutes);
+app.use('/api/leave-requests', leaveRequestRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

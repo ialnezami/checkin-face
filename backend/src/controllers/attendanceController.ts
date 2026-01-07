@@ -59,14 +59,8 @@ export const checkInWithFace = async (req: Request, res: Response, next: NextFun
 
 export const checkInWithFingerprint = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { fingerprint_data } = req.body;
-
-    if (!fingerprint_data) {
-      throw new AppError('Fingerprint data is required', 400);
-    }
-
-    // Fingerprint recognition logic would go here
-    throw new AppError('Fingerprint recognition not implemented', 501);
+    // TODO: Implement fingerprint check-in
+    throw new AppError('Fingerprint check-in not yet implemented', 501);
   } catch (error) {
     next(error);
   }
@@ -80,35 +74,31 @@ export const checkInWithRFID = async (req: Request, res: Response, next: NextFun
       throw new AppError('Tag ID is required', 400);
     }
 
-    // Import RFID service
-    const { recognizeRFID } = await import('../services/rfidService');
-    
-    // Recognize RFID tag
-    const employeeId = await recognizeRFID(tag_id);
-    if (!employeeId) {
+    // Find employee by RFID tag
+    const authMethod = await AuthMethodModel.findByMethodData('rfid', tag_id);
+    if (!authMethod) {
       throw new AppError('RFID tag not recognized', 404);
     }
 
-    // Check if employee exists and is active
-    const employee = await EmployeeModel.findById(employeeId);
+    const employee = await EmployeeModel.findById(authMethod.employee_id);
     if (!employee || employee.status !== 'active') {
       throw new AppError('Employee not found or inactive', 404);
     }
 
     // Check for active check-in
-    const activeCheckIn = await AttendanceModel.findActiveCheckIn(employeeId);
+    const activeCheckIn = await AttendanceModel.findActiveCheckIn(employee.id);
     if (activeCheckIn) {
       throw new AppError('Employee already checked in', 400);
     }
 
     // Create attendance record
     const attendanceData: CreateAttendanceInput = {
-      employee_id: employeeId,
+      employee_id: employee.id,
       auth_method_used: 'rfid',
     };
 
     const attendance = await AttendanceModel.create(attendanceData);
-    logger.info('Check-in with RFID', { employeeId, tagId: tag_id, attendanceId: attendance.id });
+    logger.info('Check-in with RFID', { employeeId: employee.id, tagId: tag_id });
 
     res.status(201).json({
       message: 'Checked in successfully',
@@ -132,18 +122,20 @@ export const checkInManual = async (req: Request, res: Response, next: NextFunct
       throw new AppError('Employee ID is required', 400);
     }
 
-    // Find employee
     const employee = await EmployeeModel.findByEmployeeId(employee_id);
     if (!employee || employee.status !== 'active') {
       throw new AppError('Employee not found or inactive', 404);
     }
 
-    // If PIN provided, verify it
+    // Verify PIN if provided
     if (pin) {
-      const pinMethod = await AuthMethodModel.findByMethodType(employee.id, 'pin');
-      if (pinMethod) {
-        const methodData = await AuthMethodModel.getMethodData(pinMethod);
-        // PIN verification logic would go here
+      const authMethod = await AuthMethodModel.findByMethodType(employee.id, 'pin');
+      if (authMethod) {
+        const { decrypt } = await import('../utils/encryption');
+        const storedPin = decrypt(authMethod.method_data);
+        if (storedPin !== pin) {
+          throw new AppError('Invalid PIN', 401);
+        }
       }
     }
 
@@ -156,11 +148,11 @@ export const checkInManual = async (req: Request, res: Response, next: NextFunct
     // Create attendance record
     const attendanceData: CreateAttendanceInput = {
       employee_id: employee.id,
-      auth_method_used: 'pin',
+      auth_method_used: 'manual',
     };
 
     const attendance = await AttendanceModel.create(attendanceData);
-    logger.info('Manual check-in', { employeeId: employee.id, attendanceId: attendance.id });
+    logger.info('Manual check-in', { employeeId: employee.id });
 
     res.status(201).json({
       message: 'Checked in successfully',
@@ -180,13 +172,11 @@ export const checkOut = async (req: Request, res: Response, next: NextFunction) 
   try {
     const { employeeId } = req.params;
 
-    // Find active check-in
     const activeCheckIn = await AttendanceModel.findActiveCheckIn(employeeId);
     if (!activeCheckIn) {
       throw new AppError('No active check-in found', 404);
     }
 
-    // Check out
     const attendance = await AttendanceModel.checkOut(activeCheckIn.id);
     logger.info('Check-out', { employeeId, attendanceId: attendance.id });
 
@@ -204,45 +194,94 @@ export const getAttendanceRecords = async (req: Request, res: Response, next: Ne
     const { employee_id, start_date, end_date, limit, offset } = req.query;
 
     let records;
-    if (start_date && end_date) {
-      records = await AttendanceModel.findByDateRange(
-        new Date(start_date as string),
-        new Date(end_date as string),
-        employee_id as string | undefined
-      );
-    } else if (employee_id) {
+    if (employee_id) {
       records = await AttendanceModel.findByEmployeeId(
         employee_id as string,
         parseInt(limit as string) || 50,
         parseInt(offset as string) || 0
       );
     } else {
-      // If no filters, return today's records
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      records = await AttendanceModel.findByDateRange(today, tomorrow);
+      const startDate = start_date ? new Date(start_date as string) : undefined;
+      const endDate = end_date ? new Date(end_date as string) : undefined;
+      records = await AttendanceModel.findByDateRange(startDate, endDate);
     }
 
-    // Enrich records with employee information
-    const enrichedRecords = await Promise.all(
-      records.map(async (record) => {
-        const employee = await EmployeeModel.findById(record.employee_id);
-        return {
-          ...record,
-          employee: employee
-            ? {
-                first_name: employee.first_name,
-                last_name: employee.last_name,
-                employee_id: employee.employee_id,
-              }
-            : null,
-        };
-      })
-    );
+    res.json({ records });
+  } catch (error) {
+    next(error);
+  }
+};
 
-    res.json({ records: enrichedRecords });
+export const getMyAttendance = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const employeeId = req.user?.userId;
+    if (!employeeId) {
+      throw new AppError('Not authenticated', 401);
+    }
+
+    const { start_date, end_date, limit, offset } = req.query;
+    
+    let records;
+    if (start_date && end_date) {
+      const start = new Date(start_date as string);
+      const end = new Date(end_date as string);
+      records = await AttendanceModel.findByDateRange(start, end);
+      // Filter by employee
+      records = records.filter((r: any) => r.employee_id === employeeId);
+    } else {
+      records = await AttendanceModel.findByEmployeeId(
+        employeeId,
+        parseInt(limit as string) || 50,
+        parseInt(offset as string) || 0
+      );
+    }
+
+    res.json({ records });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMyAttendanceStats = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const employeeId = req.user?.userId;
+    if (!employeeId) {
+      throw new AppError('Not authenticated', 401);
+    }
+
+    const { year, month } = req.query;
+    const targetYear = year ? parseInt(year as string) : new Date().getFullYear();
+    const targetMonth = month ? parseInt(month as string) : new Date().getMonth() + 1;
+
+    const startDate = new Date(targetYear, targetMonth - 1, 1);
+    const endDate = new Date(targetYear, targetMonth, 0, 23, 59, 59);
+
+    const records = await AttendanceModel.findByDateRange(startDate, endDate);
+    const myRecords = records.filter((r: any) => r.employee_id === employeeId);
+
+    // Calculate stats
+    const totalDays = new Date(targetYear, targetMonth, 0).getDate();
+    const workingDays = myRecords.filter((r: any) => {
+      const date = new Date(r.check_in_time);
+      return date.getDay() !== 0 && date.getDay() !== 6; // Exclude weekends
+    }).length;
+
+    const presentDays = myRecords.length;
+    const absentDays = totalDays - presentDays;
+    const checkInCount = myRecords.length;
+    const checkOutCount = myRecords.filter((r: any) => r.status === 'checked_out').length;
+
+    res.json({
+      year: targetYear,
+      month: targetMonth,
+      totalDays,
+      workingDays,
+      presentDays,
+      absentDays,
+      checkInCount,
+      checkOutCount,
+      attendanceRate: totalDays > 0 ? (presentDays / totalDays) * 100 : 0,
+    });
   } catch (error) {
     next(error);
   }
@@ -265,4 +304,3 @@ export const getDashboardData = async (req: Request, res: Response, next: NextFu
     next(error);
   }
 };
-
