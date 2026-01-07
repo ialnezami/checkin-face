@@ -96,10 +96,6 @@ export const exportCSV = async (req: Request, res: Response, next: NextFunction)
       ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
     ].join('\n');
 
-    const formatDate = (date: Date) => {
-      return date.toISOString().split('T')[0];
-    };
-
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', `attachment; filename=attendance-${formatDate(startDate)}-to-${formatDate(endDate)}.csv`);
     res.send(csvContent);
