@@ -1,6 +1,7 @@
 import express from 'express';
 import { body, query as queryValidator } from 'express-validator';
 import { validate } from '../middleware/validation';
+import { authenticate } from '../middleware/auth';
 import * as attendanceController from '../controllers/attendanceController';
 
 const router = express.Router();
@@ -63,6 +64,10 @@ router.get(
 
 // Get dashboard data
 router.get('/dashboard', attendanceController.getDashboardData);
+
+// Employee routes (authenticated)
+router.get('/my-attendance', authenticate, attendanceController.getMyAttendance);
+router.get('/my-stats', authenticate, attendanceController.getMyAttendanceStats);
 
 export default router;
 

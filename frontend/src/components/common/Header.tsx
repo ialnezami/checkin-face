@@ -46,6 +46,16 @@ export default function Header() {
             >
               Admin
             </Link>
+            <Link
+              href="/employee/login"
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                isActive('/employee')
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Employee Portal
+            </Link>
           </nav>
         </div>
       </div>
