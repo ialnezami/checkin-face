@@ -206,7 +206,7 @@ export const getAttendanceRecords = async (req: Request, res: Response, next: Ne
       records = await AttendanceModel.findByDateRange(
         new Date(start_date as string),
         new Date(end_date as string),
-        employee_id as string
+        employee_id as string | undefined
       );
     } else if (employee_id) {
       records = await AttendanceModel.findByEmployeeId(
@@ -215,10 +215,32 @@ export const getAttendanceRecords = async (req: Request, res: Response, next: Ne
         parseInt(offset as string) || 0
       );
     } else {
-      throw new AppError('employee_id or date range is required', 400);
+      // If no filters, return today's records
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      records = await AttendanceModel.findByDateRange(today, tomorrow);
     }
 
-    res.json({ records });
+    // Enrich records with employee information
+    const enrichedRecords = await Promise.all(
+      records.map(async (record) => {
+        const employee = await EmployeeModel.findById(record.employee_id);
+        return {
+          ...record,
+          employee: employee
+            ? {
+                first_name: employee.first_name,
+                last_name: employee.last_name,
+                employee_id: employee.employee_id,
+              }
+            : null,
+        };
+      })
+    );
+
+    res.json({ records: enrichedRecords });
   } catch (error) {
     next(error);
   }

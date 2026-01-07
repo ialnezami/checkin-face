@@ -1,11 +1,11 @@
 import * as faceapi from 'face-api.js';
-import { Canvas, Image, ImageData } from 'canvas';
 import { EmployeeModel } from '../models/Employee';
 import { AuthMethodModel } from '../models/AuthMethod';
 import { logger } from '../utils/logger';
 import { config } from '../config/env';
 import fs from 'fs';
 import path from 'path';
+import { createCanvas, loadImage, Image, Canvas, ImageData } from 'canvas';
 
 // Extend face-api.js to work with Node.js canvas
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
