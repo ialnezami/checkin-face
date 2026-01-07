@@ -10,6 +10,7 @@ import employeeRoutes from './routes/employeeRoutes';
 import attendanceRoutes from './routes/attendanceRoutes';
 import adminRoutes from './routes/adminRoutes';
 import reportRoutes from './routes/reportRoutes';
+import lateArrivalRoutes from './routes/lateArrivalRoutes';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -64,6 +65,7 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/late-arrivals', lateArrivalRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
