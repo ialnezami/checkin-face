@@ -3,6 +3,7 @@ import { EmployeeModel, CreateEmployeeInput, UpdateEmployeeInput } from '../mode
 import { AuthMethodModel, CreateAuthMethodInput } from '../models/AuthMethod';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
+import { logAudit } from '../utils/auditLogger';
 
 export const getAllEmployees = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -74,6 +75,7 @@ export const createEmployee = async (req: Request, res: Response, next: NextFunc
 
     const employee = await EmployeeModel.create(data);
     logger.info('Employee created', { employeeId: employee.id, employee_id: employee.employee_id });
+    await logAudit(req, 'employee.created', 'employee', employee.id, { employee_id: employee.employee_id });
 
     res.status(201).json(employee);
   } catch (error) {
@@ -92,6 +94,7 @@ export const updateEmployee = async (req: Request, res: Response, next: NextFunc
     }
 
     logger.info('Employee updated', { employeeId: id });
+    await logAudit(req, 'employee.updated', 'employee', id, data);
     res.json(employee);
   } catch (error) {
     next(error);
@@ -108,6 +111,7 @@ export const deleteEmployee = async (req: Request, res: Response, next: NextFunc
     }
 
     logger.info('Employee deleted', { employeeId: id });
+    await logAudit(req, 'employee.deleted', 'employee', id);
     res.json({ message: 'Employee deleted successfully' });
   } catch (error) {
     next(error);
@@ -164,6 +168,7 @@ export const enrollAuthMethod = async (req: Request, res: Response, next: NextFu
       methodType: method_type,
       authMethodId: authMethod.id,
     });
+    await logAudit(req, 'auth_method.enrolled', 'auth_method', authMethod.id, { method_type, employee_id: id });
 
     res.status(201).json({
       id: authMethod.id,

@@ -79,9 +79,19 @@ app.use((req: Request, res: Response) => {
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   logger.info(`Server running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  
+  // Seed database in development
+  if (process.env.NODE_ENV === 'development' && process.env.SEED_DB === 'true') {
+    try {
+      const { seedDatabase } = await import('./config/seed');
+      await seedDatabase();
+    } catch (error) {
+      logger.warn('Database seeding skipped or failed', { error });
+    }
+  }
 });
 
 export default app;
