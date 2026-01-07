@@ -25,7 +25,7 @@ export default function Header() {
             href="/" 
             className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
           >
-            Check-In System
+            AttendHub
           </Link>
           
           {/* Desktop Navigation */}

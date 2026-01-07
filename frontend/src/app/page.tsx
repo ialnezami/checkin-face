@@ -5,10 +5,10 @@ export default function Home() {
     <main className="min-h-screen p-4 md:p-8 bg-gray-100">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center animate-fadeIn">
-          Employee Check-In System
+          AttendHub
         </h1>
         <p className="text-base md:text-lg text-gray-600 mb-8 text-center animate-fadeIn">
-          Multi-modal employee check-in system with face recognition, fingerprint, RFID, and manual check-in.
+          Modern employee attendance management with face recognition, fingerprint, RFID, and manual check-in.
         </p>
         
         <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-6 animate-scaleIn">

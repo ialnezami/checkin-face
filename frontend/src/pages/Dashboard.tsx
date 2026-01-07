@@ -72,7 +72,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl md:text-3xl font-bold mb-6 animate-fadeIn">
-          Attendance Dashboard
+          Dashboard
         </h1>
 
         {/* Stats Cards */}

@@ -204,7 +204,7 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      <h2 className="text-3xl font-bold mb-6">Attendance Analytics Dashboard</h2>
+      <h2 className="text-3xl font-bold mb-6">Analytics Dashboard</h2>
 
       {/* Chart Type Selector */}
       <div className="bg-white p-4 rounded-lg shadow-lg">

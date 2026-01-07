@@ -3,8 +3,8 @@ import './globals.css'
 import Header from '@/components/common/Header'
 
 export const metadata: Metadata = {
-  title: 'Employee Check-In System',
-  description: 'Multi-modal employee check-in system',
+  title: 'AttendHub - Employee Attendance Management',
+  description: 'Modern multi-modal employee attendance management system',
 }
 
 export default function RootLayout({

@@ -1,6 +1,6 @@
-# Employee Check-In System
+# AttendHub
 
-A comprehensive multi-modal employee check-in system supporting face recognition, fingerprint scanning, RFID/NFC tags, and manual name search.
+A comprehensive multi-modal employee attendance management system supporting face recognition, fingerprint scanning, RFID/NFC tags, and manual name search.
 
 ## Features
 

@@ -150,7 +150,7 @@ export default function CheckInPage() {
     <div className="min-h-screen bg-gray-100 py-4 md:py-8">
       <div className="max-w-4xl mx-auto px-4 md:px-6">
         <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 animate-fadeIn">
-          Employee Check-In
+          Check-In
         </h1>
 
         {/* Site Selection */}
