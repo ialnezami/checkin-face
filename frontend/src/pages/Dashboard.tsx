@@ -69,87 +69,104 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Attendance Dashboard</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-6 animate-fadeIn">
+          Attendance Dashboard
+        </h1>
 
         {/* Stats Cards */}
         {loading ? (
-          <div className="text-center py-8">Loading...</div>
+          <div className="text-center py-8 animate-pulse-slow">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
         ) : stats ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-lg">
-              <h3 className="text-gray-600 text-sm font-medium mb-2">Total Check-Ins Today</h3>
-              <p className="text-3xl font-bold text-blue-600">{stats.totalCheckedIn}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg hover-lift transition-smooth animate-scaleIn">
+              <h3 className="text-gray-600 text-xs md:text-sm font-medium mb-2">
+                Total Check-Ins Today
+              </h3>
+              <p className="text-2xl md:text-3xl font-bold text-blue-600">
+                {stats.totalCheckedIn}
+              </p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-lg">
-              <h3 className="text-gray-600 text-sm font-medium mb-2">Total Check-Outs Today</h3>
-              <p className="text-3xl font-bold text-green-600">{stats.totalCheckedOut}</p>
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg hover-lift transition-smooth animate-scaleIn" style={{ animationDelay: '0.1s' }}>
+              <h3 className="text-gray-600 text-xs md:text-sm font-medium mb-2">
+                Total Check-Outs Today
+              </h3>
+              <p className="text-2xl md:text-3xl font-bold text-green-600">
+                {stats.totalCheckedOut}
+              </p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-lg">
-              <h3 className="text-gray-600 text-sm font-medium mb-2">Currently Checked In</h3>
-              <p className="text-3xl font-bold text-purple-600">{stats.currentlyCheckedIn}</p>
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg hover-lift transition-smooth animate-scaleIn" style={{ animationDelay: '0.2s' }}>
+              <h3 className="text-gray-600 text-xs md:text-sm font-medium mb-2">
+                Currently Checked In
+              </h3>
+              <p className="text-2xl md:text-3xl font-bold text-purple-600">
+                {stats.currentlyCheckedIn}
+              </p>
             </div>
           </div>
         ) : null}
 
         {/* Date Range Filter */}
-        <div className="bg-white p-4 rounded-lg shadow-lg mb-6">
-          <h3 className="font-semibold mb-4">Filter by Date Range</h3>
-          <div className="flex space-x-4">
-            <div>
+        <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg mb-6 animate-slideIn">
+          <h3 className="font-semibold mb-4 text-sm md:text-base">Filter by Date Range</h3>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
               <label className="block text-sm font-medium mb-1">Start Date</label>
               <input
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                className="px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition-smooth"
               />
             </div>
-            <div>
+            <div className="flex-1">
               <label className="block text-sm font-medium mb-1">End Date</label>
               <input
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                className="px-4 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition-smooth"
               />
             </div>
           </div>
         </div>
 
         {/* Absence Alerts Section */}
-        <div className="mb-6">
+        <div className="mb-6 animate-fadeIn">
           <AbsenceAlerts autoRefresh={true} />
         </div>
 
         {/* Analytics Section */}
-        <div className="mb-6">
+        <div className="mb-6 animate-fadeIn">
           <AnalyticsDashboard />
         </div>
 
         {/* Recent Records */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="p-4 border-b">
-            <h2 className="text-xl font-semibold">Recent Attendance Records</h2>
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden animate-slideIn">
+          <div className="p-4 border-b bg-gray-50">
+            <h2 className="text-lg md:text-xl font-semibold">Recent Attendance Records</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Employee
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Check-In Time
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
                     Check-Out Time
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Method
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Status
                   </th>
                 </tr>
@@ -157,32 +174,36 @@ export default function DashboardPage() {
               <tbody className="divide-y divide-gray-200">
                 {recentRecords.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                       No records found
                     </td>
                   </tr>
                 ) : (
-                  recentRecords.map((record) => (
-                    <tr key={record.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                  recentRecords.map((record, index) => (
+                    <tr 
+                      key={record.id} 
+                      className="hover:bg-gray-50 transition-colors animate-fadeIn"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
                         {record.employee
                           ? `${record.employee.first_name} ${record.employee.last_name}`
                           : record.employee_id}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
                         {format(new Date(record.check_in_time), 'MMM dd, yyyy HH:mm')}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm hidden md:table-cell">
                         {record.check_out_time
                           ? format(new Date(record.check_out_time), 'MMM dd, yyyy HH:mm')
                           : '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                         <span className="px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">
                           {record.auth_method_used}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded ${
                             record.status === 'checked_in'

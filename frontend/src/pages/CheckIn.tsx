@@ -138,27 +138,31 @@ export default function CheckInPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center animate-fadeIn">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p>Loading...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-4">Employee Check-In</h1>
+    <div className="min-h-screen bg-gray-100 py-4 md:py-8">
+      <div className="max-w-4xl mx-auto px-4 md:px-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 animate-fadeIn">
+          Employee Check-In
+        </h1>
 
         {/* Site Selection */}
         {sites.length > 1 && (
-          <div className="mb-6 p-4 bg-white rounded-lg shadow">
-            <label className="block text-sm font-medium mb-2">Select Site:</label>
+          <div className="mb-6 p-4 bg-white rounded-lg shadow-md animate-slideIn">
+            <label className="block text-sm font-medium mb-2 text-gray-700">
+              Select Site:
+            </label>
             <select
               value={selectedSite?.id || ''}
               onChange={(e) => handleSiteChange(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition-smooth"
             >
               {sites.map((site) => (
                 <option key={site.id} value={site.id}>
@@ -170,56 +174,77 @@ export default function CheckInPage() {
         )}
 
         {selectedSite && (
-          <div className="mb-6 text-center text-sm text-gray-600">
-            Current Site: <strong>{selectedSite.name}</strong>
+          <div className="mb-6 text-center text-sm text-gray-600 animate-fadeIn">
+            Current Site: <strong className="text-blue-600">{selectedSite.name}</strong>
           </div>
         )}
 
         {checkInSuccess && (
-          <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg text-center">
-            {checkInSuccess}
+          <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg text-center animate-scaleIn shadow-md">
+            <div className="flex items-center justify-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {checkInSuccess}
+            </div>
           </div>
         )}
 
         {!selectedMethod ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {isMethodEnabled('face') && (
               <button
                 onClick={() => setSelectedMethod('face')}
-                className="p-8 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow text-center"
+                className="p-6 md:p-8 bg-white rounded-lg shadow-lg hover-lift text-center animate-scaleIn focus-ring transition-smooth"
+                style={{ animationDelay: '0.1s' }}
               >
-                <div className="text-4xl mb-4">👤</div>
-                <h2 className="text-xl font-semibold mb-2">Face Recognition</h2>
-                <p className="text-gray-600">Check in using facial recognition</p>
+                <div className="text-4xl md:text-5xl mb-4">👤</div>
+                <h2 className="text-lg md:text-xl font-semibold mb-2 text-gray-800">
+                  Face Recognition
+                </h2>
+                <p className="text-sm md:text-base text-gray-600">
+                  Check in using facial recognition
+                </p>
               </button>
             )}
 
             {isMethodEnabled('rfid') && (
               <button
                 onClick={() => setSelectedMethod('rfid')}
-                className="p-8 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow text-center"
+                className="p-6 md:p-8 bg-white rounded-lg shadow-lg hover-lift text-center animate-scaleIn focus-ring transition-smooth"
+                style={{ animationDelay: '0.2s' }}
               >
-                <div className="text-4xl mb-4">📱</div>
-                <h2 className="text-xl font-semibold mb-2">RFID/NFC Tag</h2>
-                <p className="text-gray-600">Tap your RFID or NFC card</p>
+                <div className="text-4xl md:text-5xl mb-4">📱</div>
+                <h2 className="text-lg md:text-xl font-semibold mb-2 text-gray-800">
+                  RFID/NFC Tag
+                </h2>
+                <p className="text-sm md:text-base text-gray-600">
+                  Tap your RFID or NFC card
+                </p>
               </button>
             )}
 
             {isMethodEnabled('manual') && (
               <button
                 onClick={() => setSelectedMethod('manual')}
-                className="p-8 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow text-center"
+                className="p-6 md:p-8 bg-white rounded-lg shadow-lg hover-lift text-center animate-scaleIn focus-ring transition-smooth"
+                style={{ animationDelay: '0.3s' }}
               >
-                <div className="text-4xl mb-4">🔍</div>
-                <h2 className="text-xl font-semibold mb-2">Name/ID Search</h2>
-                <p className="text-gray-600">Search by name or employee ID</p>
+                <div className="text-4xl md:text-5xl mb-4">🔍</div>
+                <h2 className="text-lg md:text-xl font-semibold mb-2 text-gray-800">
+                  Name/ID Search
+                </h2>
+                <p className="text-sm md:text-base text-gray-600">
+                  Search by name or employee ID
+                </p>
               </button>
             )}
 
             {enabledMethods.length === 0 && selectedSite && (
-              <div className="col-span-3 p-8 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
-                <p className="text-yellow-800 mb-4">
-                  No authentication methods are enabled for this site ({selectedSite.name}). Please contact your administrator.
+              <div className="col-span-1 md:col-span-3 p-6 md:p-8 bg-yellow-50 border border-yellow-200 rounded-lg text-center animate-scaleIn">
+                <p className="text-yellow-800 mb-4 text-sm md:text-base">
+                  No authentication methods are enabled for this site ({selectedSite.name}). 
+                  Please contact your administrator.
                 </p>
                 {sites.length > 1 && (
                   <div className="mt-4">
@@ -227,7 +252,7 @@ export default function CheckInPage() {
                     <select
                       value={selectedSite.id}
                       onChange={(e) => handleSiteChange(e.target.value)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg"
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus-ring transition-smooth"
                     >
                       {sites.map((site) => (
                         <option key={site.id} value={site.id}>
@@ -241,35 +266,40 @@ export default function CheckInPage() {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 animate-slideIn">
             <button
               onClick={() => setSelectedMethod(null)}
-              className="mb-4 text-blue-500 hover:text-blue-700"
+              className="mb-4 text-blue-500 hover:text-blue-700 transition-colors flex items-center focus-ring rounded px-2 py-1"
             >
-              ← Back to Method Selection
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Method Selection
             </button>
 
-            {selectedMethod === 'face' && (
-              <FaceRecognition
-                mode="checkin"
-                onSuccess={handleSuccess}
-                onError={handleError}
-              />
-            )}
+            <div className="animate-fadeIn">
+              {selectedMethod === 'face' && (
+                <FaceRecognition
+                  mode="checkin"
+                  onSuccess={handleSuccess}
+                  onError={handleError}
+                />
+              )}
 
-            {selectedMethod === 'rfid' && (
-              <RFIDScanner
-                onSuccess={handleSuccess}
-                onError={handleError}
-              />
-            )}
+              {selectedMethod === 'rfid' && (
+                <RFIDScanner
+                  onSuccess={handleSuccess}
+                  onError={handleError}
+                />
+              )}
 
-            {selectedMethod === 'manual' && (
-              <NameSearch
-                onSuccess={handleSuccess}
-                onError={handleError}
-              />
-            )}
+              {selectedMethod === 'manual' && (
+                <NameSearch
+                  onSuccess={handleSuccess}
+                  onError={handleError}
+                />
+              )}
+            </div>
           </div>
         )}
       </div>
