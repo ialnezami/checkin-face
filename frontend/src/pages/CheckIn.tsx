@@ -40,11 +40,47 @@ export default function CheckInPage() {
       const sitesList = response.data.sites || [];
       setSites(sitesList);
       
-      // Auto-select first site or get from localStorage
+      // Find a site with enabled methods, or default to first site
       const savedSiteId = localStorage.getItem('selectedSiteId');
-      const siteToSelect = savedSiteId 
+      let siteToSelect = savedSiteId 
         ? sitesList.find((s: Site) => s.id === savedSiteId)
-        : sitesList[0];
+        : null;
+      
+      // If saved site doesn't exist or has no methods, find one with methods
+      if (siteToSelect) {
+        try {
+          const methodsResponse = await axios.get(`${API_URL}/api/sites/${siteToSelect.id}/enabled-methods`);
+          const enabledMethods = methodsResponse.data.methods || [];
+          if (enabledMethods.length === 0) {
+            // Saved site has no methods, find another one
+            siteToSelect = null;
+          }
+        } catch {
+          // If we can't check methods, try to find a better site
+          siteToSelect = null;
+        }
+      }
+      
+      // If no valid site selected, find first site with enabled methods
+      if (!siteToSelect) {
+        for (const site of sitesList) {
+          try {
+            const methodsResponse = await axios.get(`${API_URL}/api/sites/${site.id}/enabled-methods`);
+            const enabledMethods = methodsResponse.data.methods || [];
+            if (enabledMethods.length > 0) {
+              siteToSelect = site;
+              break;
+            }
+          } catch {
+            continue;
+          }
+        }
+      }
+      
+      // Fallback to first site if no site with methods found
+      if (!siteToSelect && sitesList.length > 0) {
+        siteToSelect = sitesList[0];
+      }
       
       if (siteToSelect) {
         setSelectedSite(siteToSelect);
@@ -180,11 +216,27 @@ export default function CheckInPage() {
               </button>
             )}
 
-            {enabledMethods.length === 0 && (
+            {enabledMethods.length === 0 && selectedSite && (
               <div className="col-span-3 p-8 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
-                <p className="text-yellow-800">
-                  No authentication methods are enabled for this site. Please contact your administrator.
+                <p className="text-yellow-800 mb-4">
+                  No authentication methods are enabled for this site ({selectedSite.name}). Please contact your administrator.
                 </p>
+                {sites.length > 1 && (
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-600 mb-2">Or select a different site:</p>
+                    <select
+                      value={selectedSite.id}
+                      onChange={(e) => handleSiteChange(e.target.value)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg"
+                    >
+                      {sites.map((site) => (
+                        <option key={site.id} value={site.id}>
+                          {site.name} ({site.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             )}
           </div>

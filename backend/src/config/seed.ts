@@ -1,5 +1,6 @@
 import { UserModel } from '../models/User';
 import { EmployeeModel } from '../models/Employee';
+import { SiteModel } from '../models/Site';
 import { logger } from '../utils/logger';
 
 /**
@@ -63,6 +64,31 @@ export const seedDatabase = async () => {
       } catch (error) {
         logger.warn(`Error creating sample employee ${empData.employee_id}`, { error });
       }
+    }
+
+    // Create default site with enabled authentication methods
+    try {
+      let defaultSite = await SiteModel.findByCode('MAIN');
+      if (!defaultSite) {
+        defaultSite = await SiteModel.create({
+          name: 'Main Office',
+          code: 'MAIN',
+          description: 'Main office location',
+        });
+        logger.info('Default site created: MAIN');
+      }
+
+      // Enable common authentication methods for the default site
+      const methodsToEnable = ['face', 'rfid', 'name_search', 'pin'];
+      for (const methodType of methodsToEnable) {
+        await SiteModel.updateAuthMethod(defaultSite.id, methodType, true);
+      }
+      logger.info('Authentication methods enabled for default site', { 
+        siteId: defaultSite.id, 
+        methods: methodsToEnable 
+      });
+    } catch (error) {
+      logger.warn('Error creating default site or enabling methods', { error });
     }
 
     logger.info('Database seeding completed');
