@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
+import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
 
 interface DashboardStats {
   totalCheckedIn: number;
