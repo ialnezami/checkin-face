@@ -43,21 +43,20 @@ const loadModels = async (): Promise<void> => {
 };
 
 /**
- * Convert base64 image to ImageData
+ * Convert base64 image to canvas
  */
-const base64ToImage = (base64String: string): Promise<HTMLImageElement> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img as any);
-    img.onerror = reject;
-    
-    // Remove data URL prefix if present
-    const base64Data = base64String.includes(',') 
-      ? base64String.split(',')[1] 
-      : base64String;
-    
-    img.src = Buffer.from(base64Data, 'base64');
-  });
+const base64ToCanvas = async (base64String: string): Promise<HTMLCanvasElement> => {
+  // Remove data URL prefix if present
+  const base64Data = base64String.includes(',') 
+    ? base64String.split(',')[1] 
+    : base64String;
+  
+  const buffer = Buffer.from(base64Data, 'base64');
+  const img = await loadImage(buffer);
+  const canvas = createCanvas(img.width, img.height);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  return canvas as any;
 };
 
 /**
@@ -67,9 +66,9 @@ export const encodeFace = async (imageData: string): Promise<number[]> => {
   try {
     await loadModels();
 
-    const img = await base64ToImage(imageData);
+    const canvas = await base64ToCanvas(imageData);
     const detection = await faceapi
-      .detectSingleFace(img as any)
+      .detectSingleFace(canvas)
       .withFaceLandmarks()
       .withFaceDescriptor();
 
@@ -178,8 +177,8 @@ export const recognizeFace = async (imageData: string): Promise<string | null> =
 export const detectFace = async (imageData: string): Promise<boolean> => {
   try {
     await loadModels();
-    const img = await base64ToImage(imageData);
-    const detection = await faceapi.detectSingleFace(img as any);
+    const canvas = await base64ToCanvas(imageData);
+    const detection = await faceapi.detectSingleFace(canvas);
     return !!detection;
   } catch (error) {
     logger.error('Face detection error', { error });

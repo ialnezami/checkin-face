@@ -125,10 +125,36 @@ export const enrollAuthMethod = async (req: Request, res: Response, next: NextFu
       throw new AppError('Employee not found', 404);
     }
 
+    let processedData = method_data;
+
+    // Process face data: encode the face if it's a face enrollment
+    if (method_type === 'face' && typeof method_data === 'string') {
+      try {
+        const { encodeFace } = await import('../services/faceRecognitionService');
+        const faceEncoding = await encodeFace(method_data);
+        processedData = faceEncoding; // Store the encoding array instead of raw image
+        logger.info('Face encoded for enrollment', { employeeId: id });
+      } catch (error: any) {
+        logger.error('Face encoding failed', { error: error.message });
+        throw new AppError('Failed to process face image: ' + error.message, 400);
+      }
+    }
+
+    // Process RFID data: ensure it's in the correct format
+    if (method_type === 'rfid') {
+      processedData = { tagId: method_data };
+    }
+
+    // Process PIN data: hash it
+    if (method_type === 'pin') {
+      const { hashPassword } = await import('../utils/encryption');
+      processedData = { pinHash: await hashPassword(method_data) };
+    }
+
     const authMethodData: CreateAuthMethodInput = {
       employee_id: id,
       method_type,
-      method_data,
+      method_data: processedData,
       is_primary: is_primary || false,
     };
 
