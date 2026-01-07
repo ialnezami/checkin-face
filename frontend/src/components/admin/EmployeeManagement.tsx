@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import FaceRecognition from '@/components/auth/FaceRecognition';
 import FaceImageManager from './FaceImageManager';
+import WorkScheduleManager from './WorkScheduleManager';
 
 interface Employee {
   id: string;
@@ -24,7 +25,7 @@ interface EmployeeManagementProps {
   token?: string;
 }
 
-type FormStep = 'details' | 'face' | 'face-management' | 'complete';
+type FormStep = 'details' | 'face' | 'face-management' | 'schedule-management' | 'complete';
 
 export default function EmployeeManagement({ token }: EmployeeManagementProps) {
   const [employees, setEmployees] = useState<Employee[]>([]);

@@ -19,9 +19,10 @@ router.get(
   async (req, res, next) => {
     try {
       const date = req.query.date ? new Date(req.query.date as string) : new Date();
+      const siteId = req.query.site_id as string | undefined;
       const startHour = req.query.start_hour ? parseInt(req.query.start_hour as string) : 9;
       
-      const lateArrivals = await lateArrivalService.detectLateArrivals(date, startHour);
+      const lateArrivals = await lateArrivalService.detectLateArrivals(date, siteId, startHour);
       res.json({ lateArrivals });
     } catch (error) {
       next(error);

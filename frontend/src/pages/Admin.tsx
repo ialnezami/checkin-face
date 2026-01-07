@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import EmployeeManagement from '@/components/admin/EmployeeManagement';
 import EnrollmentForm from '@/components/admin/EnrollmentForm';
 import EmployeeSelector from '@/components/admin/EmployeeSelector';
+import WorkScheduleManager from '@/components/admin/WorkScheduleManager';
 import ReportsView from '@/components/reports/ReportsView';
 import axios from 'axios';
 
@@ -18,7 +19,7 @@ interface Employee {
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'employees' | 'enrollment' | 'reports' | 'audit' | 'backup' | 'sites'>('employees');
+  const [activeTab, setActiveTab] = useState<'employees' | 'enrollment' | 'reports' | 'audit' | 'backup' | 'sites' | 'schedules'>('employees');
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -181,6 +182,16 @@ export default function AdminPage() {
             >
               Sites
             </button>
+            <button
+              onClick={() => setActiveTab('schedules')}
+              className={`px-4 py-2 font-medium ${
+                activeTab === 'schedules'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Work Schedules
+            </button>
           </div>
         </div>
 
@@ -218,6 +229,10 @@ export default function AdminPage() {
               return <SiteManagement />;
             })()}
           </div>
+        )}
+
+        {activeTab === 'schedules' && (
+          <WorkScheduleManager token={token || undefined} />
         )}
 
         {activeTab === 'enrollment' && (
