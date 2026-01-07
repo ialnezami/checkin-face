@@ -59,8 +59,51 @@ export const checkInWithFace = async (req: Request, res: Response, next: NextFun
 
 export const checkInWithFingerprint = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // TODO: Implement fingerprint check-in
-    throw new AppError('Fingerprint check-in not yet implemented', 501);
+    const { fingerprint_data } = req.body;
+
+    if (!fingerprint_data) {
+      throw new AppError('Fingerprint data is required', 400);
+    }
+
+    // Dynamically import fingerprint recognition service
+    const fingerprintService = await import('../services/fingerprintService');
+    
+    // Recognize fingerprint
+    const employeeId = await fingerprintService.recognizeFingerprint(fingerprint_data);
+    if (!employeeId) {
+      throw new AppError('Fingerprint not recognized', 404);
+    }
+
+    // Check if employee exists and is active
+    const employee = await EmployeeModel.findById(employeeId);
+    if (!employee || employee.status !== 'active') {
+      throw new AppError('Employee not found or inactive', 404);
+    }
+
+    // Check for active check-in
+    const activeCheckIn = await AttendanceModel.findActiveCheckIn(employeeId);
+    if (activeCheckIn) {
+      throw new AppError('Employee already checked in', 400);
+    }
+
+    // Create attendance record
+    const attendanceData: CreateAttendanceInput = {
+      employee_id: employeeId,
+      auth_method_used: 'fingerprint',
+    };
+
+    const attendance = await AttendanceModel.create(attendanceData);
+    logger.info('Check-in with fingerprint', { employeeId, attendanceId: attendance.id });
+
+    res.status(201).json({
+      message: 'Checked in successfully',
+      attendance,
+      employee: {
+        id: employee.id,
+        employee_id: employee.employee_id,
+        name: `${employee.first_name} ${employee.last_name}`,
+      },
+    });
   } catch (error) {
     next(error);
   }

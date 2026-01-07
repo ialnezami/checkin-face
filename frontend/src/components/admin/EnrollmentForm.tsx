@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import FaceRecognition from '@/components/auth/FaceRecognition';
+import FingerprintScanner from '@/components/auth/FingerprintScanner';
 import axios from 'axios';
 
 interface EnrollmentFormProps {
@@ -15,7 +16,7 @@ export default function EnrollmentForm({
   employeeName,
   onComplete,
 }: EnrollmentFormProps) {
-  const [currentStep, setCurrentStep] = useState<'method' | 'face' | 'rfid' | 'pin'>('method');
+  const [currentStep, setCurrentStep] = useState<'method' | 'face' | 'rfid' | 'fingerprint' | 'pin'>('method');
   const [enrolledMethods, setEnrolledMethods] = useState<string[]>([]);
   const [rfidTag, setRfidTag] = useState('');
   const [pin, setPin] = useState('');
@@ -24,7 +25,7 @@ export default function EnrollmentForm({
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   const token = localStorage.getItem('token');
 
-  const handleMethodSelect = (method: 'face' | 'rfid' | 'pin') => {
+  const handleMethodSelect = (method: 'face' | 'rfid' | 'fingerprint' | 'pin') => {
     setCurrentStep(method);
   };
 
@@ -75,6 +76,28 @@ export default function EnrollmentForm({
       alert('RFID tag enrolled successfully!');
     } catch (error: any) {
       alert(error.response?.data?.error || 'RFID enrollment failed');
+    }
+  };
+
+  const handleFingerprintEnrollment = async (empId: string, fingerprintData: string) => {
+    try {
+      await axios.post(
+        `${API_URL}/api/employees/${empId}/enroll`,
+        {
+          method_type: 'fingerprint',
+          method_data: { template: fingerprintData },
+          is_primary: enrolledMethods.length === 0,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setEnrolledMethods([...enrolledMethods, 'fingerprint']);
+      setCurrentStep('method');
+      alert('Fingerprint enrolled successfully!');
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Fingerprint enrollment failed');
     }
   };
 
@@ -140,7 +163,7 @@ export default function EnrollmentForm({
             Select an authentication method to enroll for this employee.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button
               onClick={() => setCurrentStep('face')}
               disabled={enrolledMethods.includes('face')}
@@ -169,6 +192,22 @@ export default function EnrollmentForm({
               <div className="text-4xl mb-2">📱</div>
               <h3 className="font-semibold">RFID/NFC Tag</h3>
               {enrolledMethods.includes('rfid') && (
+                <p className="text-xs text-green-600 mt-1">✓ Enrolled</p>
+              )}
+            </button>
+
+            <button
+              onClick={() => setCurrentStep('fingerprint')}
+              disabled={enrolledMethods.includes('fingerprint')}
+              className={`p-6 border-2 rounded-lg text-center transition-colors ${
+                enrolledMethods.includes('fingerprint')
+                  ? 'border-gray-200 bg-gray-100 opacity-50 cursor-not-allowed'
+                  : 'border-blue-300 hover:border-blue-500 hover:bg-blue-50'
+              }`}
+            >
+              <div className="text-4xl mb-2">👆</div>
+              <h3 className="font-semibold">Fingerprint</h3>
+              {enrolledMethods.includes('fingerprint') && (
                 <p className="text-xs text-green-600 mt-1">✓ Enrolled</p>
               )}
             </button>
@@ -244,6 +283,23 @@ export default function EnrollmentForm({
               Enroll RFID Tag
             </button>
           </div>
+        </div>
+      )}
+
+      {currentStep === 'fingerprint' && (
+        <div className="space-y-4">
+          <button
+            onClick={() => setCurrentStep('method')}
+            className="text-blue-500 hover:text-blue-700"
+          >
+            ← Back
+          </button>
+          <FingerprintScanner
+            mode="enrollment"
+            employeeId={employeeId}
+            onSuccess={handleFingerprintEnrollment}
+            onError={(error) => alert(error)}
+          />
         </div>
       )}
 

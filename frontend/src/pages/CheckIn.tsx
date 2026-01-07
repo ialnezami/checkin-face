@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import FaceRecognition from '@/components/auth/FaceRecognition';
 import NameSearch from '@/components/auth/NameSearch';
 import RFIDScanner from '@/components/auth/RFIDScanner';
+import FingerprintScanner from '@/components/auth/FingerprintScanner';
 import axios from 'axios';
 
-type AuthMethod = 'face' | 'rfid' | 'manual';
+type AuthMethod = 'face' | 'rfid' | 'fingerprint' | 'manual';
 
 interface Site {
   id: string;
@@ -130,6 +131,7 @@ export default function CheckInPage() {
     const methodMap: Record<string, string> = {
       face: 'face',
       rfid: 'rfid',
+      fingerprint: 'fingerprint',
       manual: 'name_search', // Manual check-in uses name_search
     };
     return enabledMethods.includes(methodMap[method] || method);
@@ -224,6 +226,22 @@ export default function CheckInPage() {
               </button>
             )}
 
+            {isMethodEnabled('fingerprint') && (
+              <button
+                onClick={() => setSelectedMethod('fingerprint')}
+                className="p-6 md:p-8 bg-white rounded-lg shadow-lg hover-lift text-center animate-scaleIn focus-ring transition-smooth"
+                style={{ animationDelay: '0.25s' }}
+              >
+                <div className="text-4xl md:text-5xl mb-4">👆</div>
+                <h2 className="text-lg md:text-xl font-semibold mb-2 text-gray-800">
+                  Fingerprint
+                </h2>
+                <p className="text-sm md:text-base text-gray-600">
+                  Scan your fingerprint
+                </p>
+              </button>
+            )}
+
             {isMethodEnabled('manual') && (
               <button
                 onClick={() => setSelectedMethod('manual')}
@@ -288,6 +306,14 @@ export default function CheckInPage() {
 
               {selectedMethod === 'rfid' && (
                 <RFIDScanner
+                  onSuccess={handleSuccess}
+                  onError={handleError}
+                />
+              )}
+
+              {selectedMethod === 'fingerprint' && (
+                <FingerprintScanner
+                  mode="checkin"
                   onSuccess={handleSuccess}
                   onError={handleError}
                 />
