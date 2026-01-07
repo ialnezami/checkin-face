@@ -7,6 +7,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
   },
+  transpilePackages: ['recharts'],
   webpack: (config, { isServer }) => {
     // Fix for canvas module in Next.js
     if (!isServer) {
