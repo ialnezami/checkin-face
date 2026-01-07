@@ -96,8 +96,12 @@ export const exportCSV = async (req: Request, res: Response, next: NextFunction)
       ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
     ].join('\n');
 
+    const formatDate = (date: Date) => {
+      return date.toISOString().split('T')[0];
+    };
+
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename=attendance-${format(startDate, 'yyyy-MM-dd')}-to-${format(endDate, 'yyyy-MM-dd')}.csv`);
+    res.setHeader('Content-Disposition', `attachment; filename=attendance-${formatDate(startDate)}-to-${formatDate(endDate)}.csv`);
     res.send(csvContent);
   } catch (error) {
     next(error);
@@ -133,8 +137,12 @@ export const exportJSON = async (req: Request, res: Response, next: NextFunction
       };
     });
 
+    const formatDate = (date: Date) => {
+      return date.toISOString().split('T')[0];
+    };
+
     res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename=attendance-${format(startDate, 'yyyy-MM-dd')}-to-${format(endDate, 'yyyy-MM-dd')}.json`);
+    res.setHeader('Content-Disposition', `attachment; filename=attendance-${formatDate(startDate)}-to-${formatDate(endDate)}.json`);
     res.json({ records: enrichedRecords });
   } catch (error) {
     next(error);
