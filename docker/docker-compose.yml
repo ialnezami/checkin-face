@@ -12,7 +12,7 @@ services:
       - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./../database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
       interval: 10s
@@ -34,7 +34,7 @@ services:
 
   backend:
     build:
-      context: ../backend
+      context: ./../backend
       dockerfile: Dockerfile
     container_name: checkin-backend
     environment:
@@ -52,7 +52,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ../backend:/app
+      - ./../backend:/app
       - /app/node_modules
     depends_on:
       postgres:
@@ -63,7 +63,7 @@ services:
 
   frontend:
     build:
-      context: ../frontend
+      context: ./../frontend
       dockerfile: Dockerfile
     container_name: checkin-frontend
     environment:
