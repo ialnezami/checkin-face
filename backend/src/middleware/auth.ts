@@ -106,3 +106,43 @@ export const requireManagerSite = async (req: Request, res: Response, next: Next
   });
 };
 
+/**
+ * Middleware to authenticate employees (can be employee or admin)
+ */
+export const authenticateEmployee = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        error: 'Authentication required',
+        message: 'No token provided',
+      });
+    }
+
+    const token = authHeader.substring(7);
+
+    try {
+      const decoded = verifyToken(token);
+      req.user = decoded;
+      
+      // Allow both employees and admins/managers
+      // Employee tokens have userId pointing to employee_id
+      // Admin tokens have userId pointing to user_id
+      next();
+    } catch (error) {
+      logger.warn('Invalid token', { error, ip: req.ip });
+      return res.status(401).json({
+        error: 'Invalid token',
+        message: 'Token is invalid or expired',
+      });
+    }
+  } catch (error) {
+    logger.error('Authentication error', { error });
+    return res.status(500).json({
+      error: 'Authentication failed',
+      message: 'An error occurred during authentication',
+    });
+  }
+};
+
